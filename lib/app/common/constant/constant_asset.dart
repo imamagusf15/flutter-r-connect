@@ -16,6 +16,7 @@ class ConstantAsset {
   static const String crmImg = "assets/images/crm.png";
   static const String bantuanImg = "assets/images/bantuan.png";
   static const String allserviceImg = "assets/images/allservice.png";
+  static const String dateContainer = "assets/images/dateImage.png";
 
   // ===== Icons =====
   static const String calendarIcon = "assets/icons/calendarIcon.svg";

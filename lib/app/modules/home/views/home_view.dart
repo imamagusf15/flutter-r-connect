@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rconnect/app/common/constant/constant_asset.dart';
+import 'package:flutter_rconnect/app/common/extension/datetime_extension.dart';
+import 'package:flutter_rconnect/app/common/widgets/custom_button.dart';
 import 'package:flutter_rconnect/app/common/widgets/custom_image_local.dart';
 import 'package:flutter_rconnect/app/core/app_color.dart';
 import 'package:flutter_rconnect/app/core/app_text_style.dart';
@@ -25,27 +27,27 @@ class HomeView extends GetView<HomeController> {
     ];
 
     return Scaffold(
-      body: SafeArea(
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: AlignmentGeometry.center,
-              colors: [AppColors.primary, AppColors.white],
-            ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: AlignmentGeometry.center,
+            colors: [AppColors.primary, AppColors.primary, AppColors.white],
           ),
+        ),
+        child: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 GestureDetector(
                   onTap: () => Get.toNamed(Routes.VEHICLE_CHECK),
                   child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       CircleAvatar(
-                        radius: 30,
+                        radius: 20,
                         backgroundColor: Colors.white,
                         child: ClipOval(
                           child: Image.asset(
@@ -57,56 +59,45 @@ class HomeView extends GetView<HomeController> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Wisnu Hidayat',
-                              style: AppTextStyle.semibold20(
-                                color: AppColors.white,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                CustomImageLocal(
-                                  imagePath: ConstantAsset.roleIcon,
-                                  width: 16,
-                                  height: 16,
-                                  color: Colors.white,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'Kepala Kantor Pelayanan JR Tingkat II Bandung',
-                                    style: AppTextStyle.regular12(
-                                      color: AppColors.white,
-                                    ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                      Text(
+                        controller.userData.value.name ?? 'Unknown',
+                        style: AppTextStyle.semibold20(color: AppColors.white),
                       ),
                     ],
                   ),
                 ),
+                SizedBox(height: 8),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomImageLocal(
+                      imagePath: ConstantAsset.roleIcon,
+                      width: 16,
+                      height: 16,
+                      color: Colors.white,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Kepala Kantor Pelayanan JR Tingkat II Bandung',
+                        style: AppTextStyle.regular12(color: AppColors.white),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 22),
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [AppColors.primary, AppColors.blue100],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
                         color: AppColors.primary.withOpacity(0.18),
@@ -118,139 +109,189 @@ class HomeView extends GetView<HomeController> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              'Jumat, 08 Agustus 2025',
+                      Padding(
+                        padding: EdgeInsetsGeometry.all(4),
+                        child: Row(
+                          children: [
+                            CustomImageLocal(
+                              imagePath: ConstantAsset.dateContainer,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              DateTime.now().formatDate(),
                               style: AppTextStyle.regular14(
                                 color: AppColors.white,
                               ),
                             ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.18),
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: Text(
-                              'Riwayat Kehadiran',
-                              style: AppTextStyle.semibold12(
-                                color: AppColors.white,
-                              ),
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 18),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: AppColors.white,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '08:00',
-                                    style: AppTextStyle.bold28(
-                                      color: AppColors.netral900,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Jam Masuk',
-                                    style: AppTextStyle.regular14(
-                                      color: AppColors.netral500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.16),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '--:--',
-                                    style: AppTextStyle.bold28(
-                                      color: AppColors.white,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Jam Keluar',
-                                    style: AppTextStyle.regular14(
-                                      color: AppColors.white,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 18),
-                      SizedBox(
+                      SizedBox(height: 8),
+                      Container(
+                        padding: EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(17),
+                        ),
+                        // height: 192,
                         width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.white,
-                            foregroundColor: AppColors.primary,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    'Regular Office [08:00 - 17:00]',
+                                    style: AppTextStyle.regular12(
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(width: 8),
+                                TextButton(
+                                  onPressed: () {},
+                                  child: Text(
+                                    'Riwayat Kehadiran',
+                                    style: AppTextStyle.semibold12(
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                          ),
-                          child: Text(
-                            'Rekam Waktu',
-                            style: AppTextStyle.semibold16(
-                              color: AppColors.primary,
+                            Container(
+                              padding: EdgeInsets.all(12),
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                color: Colors.white,
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  CircleAvatar(
+                                    radius: 15,
+                                    backgroundColor: Colors.white,
+                                    child: ClipOval(
+                                      child: Image.asset(
+                                        ConstantAsset.profilePicture,
+                                        fit: BoxFit.cover,
+                                        width: 56,
+                                        height: 56,
+                                      ),
+                                    ),
+                                  ),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '08:00',
+                                        style: AppTextStyle.bold28(
+                                          color: AppColors.netral900,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Container(
+                                        padding: EdgeInsets.all(4),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          color: Colors.green.shade100,
+                                        ),
+                                        child: Text(
+                                          'Jam Masuk',
+                                          style: AppTextStyle.regular12(
+                                            color: Colors.green,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Container(
+                                    width: 1,
+                                    height: 56,
+                                    color: Colors.grey.shade300,
+                                  ),
+                                  CircleAvatar(
+                                    radius: 15,
+                                    backgroundColor: Colors.grey.shade100,
+                                    child: ClipOval(
+                                      child: Icon(
+                                        Icons.person_outline,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '--:--',
+                                        style: AppTextStyle.bold28(
+                                          color: AppColors.netral100,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Container(
+                                        padding: EdgeInsets.all(4),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          color: Colors.grey.shade100,
+                                        ),
+                                        child: Text(
+                                          'Jam Keluar',
+                                          style: AppTextStyle.regular12(
+                                            color: AppColors.netral300,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
+                            SizedBox(height: 12),
+                            CustomButton(
+                              onTap: () {},
+                              isGradient: true,
+                              child: Text(
+                                'Rekam Waktu',
+                                style: AppTextStyle.semibold14(),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 24),
-                Text(
-                  'Menu Utama',
-                  style: AppTextStyle.semibold18(color: AppColors.netral900),
-                ),
-                const SizedBox(height: 14),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: menuItems.map((item) {
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 400,
+                  child: GridView.builder(
+                    itemCount: menuItems.length,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 4,
+                      childAspectRatio: 0.6,
+                    ),
+                    itemBuilder: (context, index) {
+                      final item = menuItems[index];
                       return Padding(
                         padding: const EdgeInsets.only(right: 12),
-                        child: SizedBox(
-                          width: 100,
-                          child: _buildMenuCard(item['icon']!, item['label']!),
-                        ),
+                        child: _buildMenuCard(item['icon']!, item['label']!),
                       );
-                    }).toList(),
+                    },
                   ),
                 ),
-                const SizedBox(height: 12),
               ],
             ),
           ),
@@ -278,24 +319,15 @@ class HomeView extends GetView<HomeController> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
-            width: 56,
-            height: 56,
+            padding: EdgeInsets.all(4),
             decoration: BoxDecoration(
               color: AppColors.blue100.withOpacity(0.18),
               borderRadius: BorderRadius.circular(18),
             ),
-            child: Center(
-              child: Image.asset(
-                iconPath,
-                width: 34,
-                height: 34,
-                fit: BoxFit.contain,
-              ),
-            ),
+            child: Center(child: Image.asset(iconPath, fit: BoxFit.cover)),
           ),
           const SizedBox(height: 8),
-          ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 40),
+          Expanded(
             child: Text(
               title,
               style: AppTextStyle.regular12(color: AppColors.netral900),

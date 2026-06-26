@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_rconnect/app/common/constant/constant_asset.dart';
+import 'package:flutter_rconnect/app/common/widgets/custom_image_local.dart';
 import 'package:flutter_rconnect/app/routes/app_pages.dart';
 import 'package:get/get.dart';
 import 'package:flutter_rconnect/app/common/widgets/custom_button.dart';
@@ -11,21 +13,34 @@ import '../controllers/vehicle_check_controller.dart';
 class VehicleCheckView extends GetView<VehicleCheckController> {
   const VehicleCheckView({super.key});
 
+  IconData _getIdentifierIcon(String label) {
+    switch (label) {
+      case 'Nomor Rangka':
+        return Icons.build;
+      case 'Nomor Mesin':
+        return Icons.settings;
+      default:
+        return Icons.directions_car;
+    }
+  }
+
   Widget _buildIdentifierTab(
     BuildContext context,
     String label,
     bool selected,
     VoidCallback onTap,
   ) {
+    final iconColor = selected ? AppColors.primary : AppColors.netral500;
     return ConstrainedBox(
       constraints: const BoxConstraints(minWidth: 100, maxWidth: 160),
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          height: 52,
-          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
           decoration: BoxDecoration(
-            color: selected ? AppColors.primary : AppColors.white,
+            color: selected
+                ? AppColors.primary.withOpacity(0.1)
+                : AppColors.white,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: selected ? AppColors.primary : AppColors.netral200,
@@ -40,12 +55,32 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
                   ]
                 : null,
           ),
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: AppTextStyle.semibold14(
-              color: selected ? AppColors.white : AppColors.netral700,
-            ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: selected ? AppColors.primary : AppColors.netral100,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  _getIdentifierIcon(label),
+                  color: selected ? AppColors.white : AppColors.netral700,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                style: AppTextStyle.regular12(
+                  color: selected ? AppColors.primary : AppColors.netral700,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -56,8 +91,11 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
     TextEditingController? controller,
     required String hintText,
     bool small = false,
+    double? width,
+    TextAlign textAlign = TextAlign.start,
   }) {
     return Container(
+      width: width,
       height: small ? 48 : 58,
       decoration: BoxDecoration(
         color: AppColors.blue50,
@@ -68,6 +106,7 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
       alignment: Alignment.center,
       child: TextField(
         controller: controller,
+        textAlign: textAlign,
         decoration: InputDecoration(
           hintText: hintText,
           border: InputBorder.none,
@@ -128,6 +167,7 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
       child: Text(
         text,
         style: AppTextStyle.semibold14(color: AppColors.primary),
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
@@ -261,30 +301,30 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
                         ),
                         const SizedBox(height: 16),
                         Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Expanded(
-                              flex: 2,
-                              child: _buildVehicleInputField(
-                                controller: controller.textController,
-                                hintText: '1234 ABC',
-                              ),
+                            _buildVehicleInputField(
+                              controller: controller.prefixController,
+                              hintText: 'B',
+                              small: true,
+                              width: 72,
+                              textAlign: TextAlign.center,
                             ),
                             const SizedBox(width: 10),
                             Expanded(
-                              child: Column(
-                                children: [
-                                  _buildVehicleInputField(
-                                    hintText: 'B',
-                                    small: true,
-                                  ),
-                                  const SizedBox(height: 10),
-                                  _buildVehicleInputField(
-                                    hintText: 'CD',
-                                    small: true,
-                                  ),
-                                ],
+                              child: _buildVehicleInputField(
+                                controller: controller.textController,
+                                hintText: '1234',
+                                textAlign: TextAlign.center,
                               ),
+                            ),
+                            const SizedBox(width: 10),
+                            _buildVehicleInputField(
+                              controller: controller.suffixController,
+                              hintText: 'CD',
+                              small: true,
+                              width: 72,
+                              textAlign: TextAlign.center,
                             ),
                           ],
                         ),
@@ -345,7 +385,7 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
                       const SizedBox(width: 10),
                       _buildTag('6374 CC'),
                       const SizedBox(width: 10),
-                      _buildTag('Silver Kombinasi'),
+                      Expanded(child: _buildTag('Silver Kombinasi')),
                     ],
                   ),
                   const SizedBox(height: 20),
@@ -431,23 +471,26 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Terlambat',
-                              style: AppTextStyle.semibold14(
-                                color: AppColors.red900,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Terlambat',
+                                style: AppTextStyle.semibold14(
+                                  color: AppColors.red900,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Masa Berlaku s.d. 02 November 2024',
-                              style: AppTextStyle.regular12(
-                                color: AppColors.red900,
+                              const SizedBox(height: 4),
+                              Text(
+                                'Masa Berlaku s.d. 02 November 2024',
+                                style: AppTextStyle.regular12(
+                                  color: AppColors.red900,
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -661,23 +704,26 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Aktif',
-                              style: AppTextStyle.semibold14(
-                                color: AppColors.primary,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Aktif',
+                                style: AppTextStyle.semibold14(
+                                  color: AppColors.primary,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Masa Berlaku s.d. 02 November 2025',
-                              style: AppTextStyle.regular12(
-                                color: AppColors.netral700,
+                              const SizedBox(height: 4),
+                              Text(
+                                'Masa Berlaku s.d. 02 November 2025',
+                                style: AppTextStyle.regular12(
+                                  color: AppColors.netral700,
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ],
                     ),
