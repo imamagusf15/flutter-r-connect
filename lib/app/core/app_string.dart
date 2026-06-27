@@ -19,5 +19,6 @@ class AppString {
   static const badGateway = "Bad gateway";
   static const validationError = "Validation Error";
 
-  static const appFont = "Roboto";
+  static const checkVehicleInfo =
+      "Menu ini berfungsi untuk pengecekan data kendaraan & riwayat pembayaran SWDKLLJ dan IWKBU. Data ini hanya untuk keperluan pekerjaan dan tidak untuk  disebarluaskan.";
 }

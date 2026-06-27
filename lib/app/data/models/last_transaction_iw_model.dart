@@ -1,15 +1,15 @@
-class LastTransactionIwModel {
+class LastTransactionSwModel {
   String? loketKantor;
-  String? tglTransaksi;
-  String? tglPenetapan;
-  String? masaLakuAwal;
-  String? masaLakuAkhir;
+  DateTime? tglTransaksi;
+  DateTime? tglPenetapan;
+  DateTime? masaLakuAwal;
+  DateTime? masaLakuAkhir;
   int? kd;
   int? sw;
   int? denda;
   int? total;
 
-  LastTransactionIwModel({
+  LastTransactionSwModel({
     this.loketKantor,
     this.tglTransaksi,
     this.tglPenetapan,
@@ -21,12 +21,12 @@ class LastTransactionIwModel {
     this.total,
   });
 
-  LastTransactionIwModel.fromJson(Map<String, dynamic> json) {
+  LastTransactionSwModel.fromJson(Map<String, dynamic> json) {
     loketKantor = json['loket_kantor'];
-    tglTransaksi = json['tgl_transaksi'];
-    tglPenetapan = json['tgl_penetapan'];
-    masaLakuAwal = json['masa_laku_awal'];
-    masaLakuAkhir = json['masa_laku_akhir'];
+    tglTransaksi = DateTime.parse(json['tgl_transaksi']);
+    tglPenetapan = DateTime.parse(json['tgl_penetapan']);
+    masaLakuAwal = DateTime.parse(json['masa_laku_awal']);
+    masaLakuAkhir = DateTime.parse(json['masa_laku_akhir']);
     kd = json['kd'];
     sw = json['sw'];
     denda = json['denda'];
@@ -34,16 +34,16 @@ class LastTransactionIwModel {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['loket_kantor'] = this.loketKantor;
-    data['tgl_transaksi'] = this.tglTransaksi;
-    data['tgl_penetapan'] = this.tglPenetapan;
-    data['masa_laku_awal'] = this.masaLakuAwal;
-    data['masa_laku_akhir'] = this.masaLakuAkhir;
-    data['kd'] = this.kd;
-    data['sw'] = this.sw;
-    data['denda'] = this.denda;
-    data['total'] = this.total;
+    final Map<String, dynamic> data = {};
+    data['loket_kantor'] = loketKantor;
+    data['tgl_transaksi'] = tglTransaksi!.toIso8601String();
+    data['tgl_penetapan'] = tglPenetapan!.toIso8601String();
+    data['masa_laku_awal'] = masaLakuAwal!.toIso8601String();
+    data['masa_laku_akhir'] = masaLakuAkhir!.toIso8601String();
+    data['kd'] = kd;
+    data['sw'] = sw;
+    data['denda'] = denda;
+    data['total'] = total;
     return data;
   }
 }

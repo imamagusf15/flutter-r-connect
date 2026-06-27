@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rconnect/app/common/constant/constant_asset.dart';
+import 'package:flutter_rconnect/app/common/extension/datetime_extension.dart';
 import 'package:flutter_rconnect/app/common/widgets/custom_image_local.dart';
+import 'package:flutter_rconnect/app/common/widgets/custom_textfield.dart';
+import 'package:flutter_rconnect/app/core/app_string.dart';
+import 'package:flutter_rconnect/app/data/models/last_transaction_iw_model.dart';
+import 'package:flutter_rconnect/app/data/models/last_transaction_sw_model.dart';
+import 'package:flutter_rconnect/app/data/models/vehicle_crash_history.dart';
+import 'package:flutter_rconnect/app/data/models/vehicle_model.dart';
+import 'package:flutter_rconnect/app/modules/vehicle_check/widget/identifier_item.dart';
+import 'package:flutter_rconnect/app/modules/vehicle_check/widget/vehicle_profile_item.dart';
 import 'package:flutter_rconnect/app/routes/app_pages.dart';
 import 'package:get/get.dart';
 import 'package:flutter_rconnect/app/common/widgets/custom_button.dart';
-import 'package:flutter_rconnect/app/common/widgets/custom_textfield.dart';
 import 'package:flutter_rconnect/app/core/app_color.dart';
 import 'package:flutter_rconnect/app/core/app_text_style.dart';
 
@@ -13,71 +21,74 @@ import '../controllers/vehicle_check_controller.dart';
 class VehicleCheckView extends GetView<VehicleCheckController> {
   const VehicleCheckView({super.key});
 
-  IconData _getIdentifierIcon(String label) {
-    switch (label) {
-      case 'Nomor Rangka':
-        return Icons.build;
-      case 'Nomor Mesin':
-        return Icons.settings;
-      default:
-        return Icons.directions_car;
-    }
-  }
-
-  Widget _buildIdentifierTab(
-    BuildContext context,
-    String label,
-    bool selected,
-    VoidCallback onTap,
-  ) {
-    final iconColor = selected ? AppColors.primary : AppColors.netral500;
-    return ConstrainedBox(
-      constraints: const BoxConstraints(minWidth: 100, maxWidth: 160),
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-          decoration: BoxDecoration(
-            color: selected
-                ? AppColors.primary.withOpacity(0.1)
-                : AppColors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: selected ? AppColors.primary : AppColors.netral200,
-            ),
-            boxShadow: selected
-                ? [
-                    BoxShadow(
-                      color: AppColors.primary.withOpacity(0.18),
-                      blurRadius: 12,
-                      offset: const Offset(0, 6),
-                    ),
-                  ]
-                : null,
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: AlignmentGeometry.topCenter,
+            end: AlignmentGeometry.center,
+            colors: [AppColors.primary, AppColors.primary, AppColors.white],
           ),
+        ),
+        child: SafeArea(
           child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: selected ? AppColors.primary : AppColors.netral100,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  _getIdentifierIcon(label),
-                  color: selected ? AppColors.white : AppColors.netral700,
-                  size: 20,
-                ),
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Get.back(),
+                    icon: Icon(Icons.arrow_back, color: Colors.white),
+                  ),
+                  Expanded(
+                    child: Text(
+                      'Profil Kendaraan',
+                      textAlign: TextAlign.center,
+                      style: AppTextStyle.semibold14(),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 10),
-              Text(
-                label,
-                textAlign: TextAlign.center,
-                style: AppTextStyle.regular12(
-                  color: selected ? AppColors.primary : AppColors.netral700,
+              SizedBox(height: 8),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    spacing: 24,
+                    children: [
+                      _buildCheckVehicleCard(),
+                      Obx(() {
+                        return controller.vehicleData.value != null
+                            ? Column(
+                                children: [
+                                  _buildVehicleProfileCard(
+                                    controller.vehicleData.value!.vehicle!,
+                                  ),
+                                  _buildTransactionSW(
+                                    controller
+                                        .vehicleData
+                                        .value!
+                                        .lastTransactionSwModel!,
+                                  ),
+                                  _buildTransactionIW(
+                                    controller
+                                        .vehicleData
+                                        .value!
+                                        .lastTransactionIwModel!,
+                                  ),
+                                  _buildCrashInfoCard(
+                                    controller
+                                        .vehicleData
+                                        .value!
+                                        .vehicleCrashHistory!,
+                                  ),
+                                ],
+                              )
+                            : SizedBox.shrink();
+                      }),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -87,894 +98,585 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
     );
   }
 
-  Widget _buildVehicleInputField({
-    TextEditingController? controller,
-    required String hintText,
-    bool small = false,
-    double? width,
-    TextAlign textAlign = TextAlign.start,
-  }) {
-    return Container(
-      width: width,
-      height: small ? 48 : 58,
-      decoration: BoxDecoration(
-        color: AppColors.blue50,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.netral200),
+  Container _buildCheckVehicleCard() {
+    final identifierData = [
+      IdentifierData(label: 'Nomor Polisi', imageIcon: ConstantAsset.nopolIcon),
+      IdentifierData(
+        label: 'Nomor Rangka',
+        imageIcon: ConstantAsset.wrenchIcon,
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      alignment: Alignment.center,
-      child: TextField(
-        controller: controller,
-        textAlign: textAlign,
-        decoration: InputDecoration(
-          hintText: hintText,
-          border: InputBorder.none,
-          isDense: true,
+      IdentifierData(label: 'Nomor Mesin', imageIcon: ConstantAsset.gearIcon),
+    ];
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          begin: AlignmentGeometry.topCenter,
+          end: AlignmentGeometry.center,
+          colors: [AppColors.blue100.withOpacity(0.5), AppColors.blue50],
         ),
-        style: AppTextStyle.semibold16(color: AppColors.netral900),
       ),
-    );
-  }
-
-  Widget _buildInfoRow(
-    IconData icon,
-    String label,
-    String value, {
-    bool isHidden = false,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Icon(icon, size: 18, color: AppColors.netral500),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              label,
-              style: AppTextStyle.regular14(color: AppColors.netral700),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Flexible(
-            child: Text(
-              isHidden ? '••••••••••••••' : value,
-              style: AppTextStyle.semibold14(color: AppColors.primary),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.right,
-            ),
-          ),
-          if (isHidden) ...[
-            const SizedBox(width: 8),
-            Icon(Icons.visibility_off, size: 18, color: AppColors.netral500),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTag(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.blue100.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Text(
-        text,
-        style: AppTextStyle.semibold14(color: AppColors.primary),
-        overflow: TextOverflow.ellipsis,
-      ),
-    );
-  }
-
-  Widget _buildPaymentRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: AppTextStyle.regular14(color: AppColors.netral700),
-          ),
-          Text(
-            value,
-            style: AppTextStyle.semibold14(color: AppColors.netral900),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPaymentStat(String value, String label) {
-    return Expanded(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        spacing: 4,
         children: [
-          Text(
-            value,
-            style: AppTextStyle.semibold16(color: AppColors.netral900),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            label,
-            style: AppTextStyle.regular12(color: AppColors.netral500),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.blue50,
-      appBar: AppBar(
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        title: Text(
-          'Profil Kendaraan',
-          style: AppTextStyle.semibold18(color: AppColors.white),
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(30),
-                gradient: const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [AppColors.primary, AppColors.blue100],
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              spacing: 8,
+              children: [
+                Container(
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(50),
+                    color: AppColors.blue100,
+                  ),
+                  child: Image.asset(ConstantAsset.nopolImg),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withOpacity(0.18),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    'Masukkan ID Kendaraan',
-                    style: AppTextStyle.semibold20(color: AppColors.white),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Menu ini berfungsi untuk pengecekan data kendaraan & riwayat pembayaran SWDKLLJ dan IWKBU. Data ini hanya untuk keperluan pekerjaan dan tidak untuk disebarluaskan.',
-                    style: AppTextStyle.regular14(
-                      color: AppColors.white.withOpacity(0.92),
-                    ),
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Pilih & Input Identifier Kendaraan',
-                    style: AppTextStyle.semibold14(color: AppColors.white),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.netral900.withOpacity(0.08),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Obx(
-                          () => Wrap(
-                            spacing: 10,
-                            runSpacing: 10,
-                            children: List.generate(
-                              controller.identifierOptions.length,
-                              (index) => _buildIdentifierTab(
-                                context,
-                                controller.identifierOptions[index],
-                                controller.selectedIndex.value == index,
-                                () => controller.selectIndex(index),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            _buildVehicleInputField(
-                              controller: controller.prefixController,
-                              hintText: 'B',
-                              small: true,
-                              width: 72,
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: _buildVehicleInputField(
-                                controller: controller.textController,
-                                hintText: '1234',
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            _buildVehicleInputField(
-                              controller: controller.suffixController,
-                              hintText: 'CD',
-                              small: true,
-                              width: 72,
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 20),
-                        CustomButton(
-                          onTap: () {},
-                          isGradient: true,
-                          child: Text(
-                            'Cari Data',
-                            style: AppTextStyle.semibold16(
-                              color: AppColors.white,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                Text('Masukkan ID Kendaraan', style: AppTextStyle.semibold16()),
+              ],
             ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(28),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.netral900.withOpacity(0.08),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
+          ),
+          Container(
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              color: Colors.grey.shade50,
+            ),
+            child: Column(
+              spacing: 8,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  AppString.checkVehicleInfo,
+                  textAlign: TextAlign.justify,
+                  style: AppTextStyle.regular12(color: AppColors.netral400),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  'Pilih & Input Identifier Kendaraan',
+                  style: AppTextStyle.semibold12(color: AppColors.netral400),
+                ),
+                SizedBox(
+                  height: 72,
+                  width: Get.width,
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: identifierData.length,
+                    scrollDirection: Axis.horizontal,
+                    separatorBuilder: (context, index) => SizedBox(width: 4),
+                    itemBuilder: (context, index) {
+                      final data = identifierData[index];
+                      return Obx(
+                        () => IdentifierItem(
+                          onTap: () => controller.selectIndex(index),
+                          data: data,
+                          isSelected: controller.selectedIndex.value == index,
+                        ),
+                      );
+                    },
                   ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    'Profil Kendaraan',
-                    style: AppTextStyle.semibold18(color: AppColors.netral900),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'B-7205-BGA',
-                    style: AppTextStyle.semibold20(color: AppColors.primary),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'PT. SERLIAN JAYA UTAMA',
-                    style: AppTextStyle.semibold16(color: AppColors.netral900),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
+                ),
+                Form(
+                  key: controller.formKey,
+                  child: Row(
+                    spacing: 4,
                     children: [
-                      _buildTag('2022'),
-                      const SizedBox(width: 10),
-                      _buildTag('6374 CC'),
-                      const SizedBox(width: 10),
-                      Expanded(child: _buildTag('Silver Kombinasi')),
+                      SizedBox(
+                        width: 75,
+                        child: CustomTextFormField(
+                          controller: controller.prefixController,
+                          textAlign: TextAlign.center,
+                          hintText: 'B',
+                          validator: (value) {
+                            if (value == '') {
+                              return '';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      Flexible(
+                        child: CustomTextFormField(
+                          controller: controller.textController,
+                          textAlign: TextAlign.center,
+                          hintText: '1234',
+                          validator: (value) {
+                            if (value == '') {
+                              return '';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      SizedBox(
+                        width: 75,
+                        child: CustomTextFormField(
+                          controller: controller.suffixController,
+                          textAlign: TextAlign.center,
+                          hintText: 'BGA',
+                          validator: (value) {
+                            if (value == '') {
+                              return '';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 20),
-                  const Divider(height: 0),
-                  const SizedBox(height: 8),
-                  _buildInfoRow(
-                    Icons.settings,
-                    'No. Rangka',
-                    'MHL368006DJ002603',
-                  ),
-                  const Divider(height: 0),
-                  _buildInfoRow(Icons.memory, 'No. Mesin', '906998U1029093'),
-                  const Divider(height: 0),
-                  _buildInfoRow(Icons.fire_truck, 'Jenis Kendaraan', 'E3'),
-                  const Divider(height: 0),
-                  _buildInfoRow(
-                    Icons.badge,
-                    'NIK',
-                    '****************',
-                    isHidden: true,
-                  ),
-                  const Divider(height: 0),
-                  _buildInfoRow(
-                    Icons.phone,
-                    'No. HP',
-                    '************',
-                    isHidden: true,
-                  ),
-                  const Divider(height: 0),
-                  _buildInfoRow(
-                    Icons.location_on,
-                    'Alamat',
-                    'Jl. Perserikatan No1 Blok A/261 JT',
-                  ),
-                ],
-              ),
+                ),
+                CustomButton(
+                  onTap: () {
+                    controller.fetchVehicleData();
+                  },
+                  isGradient: true,
+                  child: Text('Cari Data', style: AppTextStyle.semibold14()),
+                ),
+              ],
             ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(28),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.netral900.withOpacity(0.08),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    'SWDKLLJ',
-                    style: AppTextStyle.semibold18(color: AppColors.netral900),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Menampilkan data pembayaran terakhir',
-                    style: AppTextStyle.regular12(color: AppColors.netral500),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.red50,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: AppColors.red300.withOpacity(0.18),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.warning_amber_rounded,
-                            color: Colors.red,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Terlambat',
-                                style: AppTextStyle.semibold14(
-                                  color: AppColors.red900,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Masa Berlaku s.d. 02 November 2024',
-                                style: AppTextStyle.regular12(
-                                  color: AppColors.red900,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      gradient: const LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [AppColors.primary, AppColors.blue100],
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 16,
-                            horizontal: 16,
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Loket Kantor',
-                                      style: AppTextStyle.regular12(
-                                        color: AppColors.white.withOpacity(0.8),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      '0200003 - SAMSAT JAKARTA UTARA',
-                                      style: AppTextStyle.semibold14(
-                                        color: AppColors.white,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Text(
-                                '22 Agustus 2024',
-                                style: AppTextStyle.semibold14(
-                                  color: AppColors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: const BoxDecoration(
-                            color: AppColors.white,
-                            borderRadius: BorderRadius.vertical(
-                              bottom: Radius.circular(20),
-                            ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.calendar_month,
-                                    size: 18,
-                                    color: AppColors.netral500,
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Text(
-                                      'Tgl. Penetapan',
-                                      style: AppTextStyle.regular14(
-                                        color: AppColors.netral700,
-                                      ),
-                                    ),
-                                  ),
-                                  Text(
-                                    '22 Agustus 2024',
-                                    style: AppTextStyle.semibold14(
-                                      color: AppColors.netral900,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.date_range,
-                                    size: 18,
-                                    color: AppColors.netral500,
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Text(
-                                      'Masa Berlaku',
-                                      style: AppTextStyle.regular14(
-                                        color: AppColors.netral700,
-                                      ),
-                                    ),
-                                  ),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Text(
-                                        '02 November 2024',
-                                        style: AppTextStyle.semibold14(
-                                          color: AppColors.netral900,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        's.d. 02 November 2025',
-                                        style: AppTextStyle.regular12(
-                                          color: AppColors.netral500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 20),
-                              const Divider(height: 0),
-                              const SizedBox(height: 16),
-                              Row(
-                                children: [
-                                  _buildPaymentStat('3.000', 'KD'),
-                                  _buildPaymentStat('87.000', 'SW'),
-                                  _buildPaymentStat('87.000', 'Denda'),
-                                  _buildPaymentStat('117.000', 'Total'),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  GestureDetector(
-                    onTap: () {},
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Riwayat Transaksi',
-                          style: AppTextStyle.semibold14(
-                            color: AppColors.primary,
-                          ),
-                        ),
-                        const Icon(
-                          Icons.arrow_forward_ios,
-                          size: 14,
-                          color: AppColors.primary,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Card _buildVehicleProfileCard(Vehicle vehicle) {
+    final profilItems = [
+      _buildRowInfo(
+        iconAsset: ConstantAsset.wrenchIcon,
+        label: 'No. Rangka',
+        value: vehicle.noRangka ?? '',
+      ),
+      _buildRowInfo(
+        iconAsset: ConstantAsset.gearIcon,
+        label: 'No. Mesin',
+        value: vehicle.noMesin ?? '',
+      ),
+      _buildRowInfo(
+        iconAsset: ConstantAsset.carIcon,
+        label: 'Jenis Kendaraan',
+        value: vehicle.jenis ?? '',
+      ),
+      Obx(
+        () => _buildRowInfo(
+          iconAsset: ConstantAsset.cardIcon,
+          label: 'NIK',
+          value: vehicle.nik ?? '',
+          visibleValue: controller.visibleNIK.value,
+          onPressed: () => controller.visibleNIK.toggle(),
+        ),
+      ),
+      Obx(
+        () => _buildRowInfo(
+          iconAsset: ConstantAsset.phoneIcon,
+          label: 'No. HP',
+          value: 'test',
+          visibleValue: controller.visibleHP.value,
+          onPressed: () => controller.visibleHP.toggle(),
+        ),
+      ),
+
+      _buildRowInfo(
+        iconAsset: ConstantAsset.locationIcon,
+        label: 'Alamat',
+        value: '',
+      ),
+    ];
+    return Card(
+      color: Colors.white,
+      child: Padding(
+        padding: EdgeInsets.all(12),
+        child: Column(
+          spacing: 4,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Profil Kendaraan',
+              style: AppTextStyle.semibold16(color: AppColors.netral400),
             ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(28),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.netral900.withOpacity(0.08),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    'IWKBU',
-                    style: AppTextStyle.semibold18(color: AppColors.netral900),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Menampilkan data pembayaran terakhir',
-                    style: AppTextStyle.regular12(color: AppColors.netral500),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.08),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.18),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.check_circle,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Aktif',
-                                style: AppTextStyle.semibold14(
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Masa Berlaku s.d. 02 November 2025',
-                                style: AppTextStyle.regular12(
-                                  color: AppColors.netral700,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      gradient: const LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [AppColors.primary, AppColors.blue100],
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 16,
-                            horizontal: 16,
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Loket Kantor',
-                                      style: AppTextStyle.regular12(
-                                        color: AppColors.white.withOpacity(0.8),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      '0200003 - SAMSAT JAKARTA UTARA',
-                                      style: AppTextStyle.semibold14(
-                                        color: AppColors.white,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Text(
-                                '22 Agustus 2025',
-                                style: AppTextStyle.semibold14(
-                                  color: AppColors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: const BoxDecoration(
-                            color: AppColors.white,
-                            borderRadius: BorderRadius.vertical(
-                              bottom: Radius.circular(20),
-                            ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              _buildPaymentRow('Status', 'Beroperasi'),
-                              const Divider(height: 0),
-                              _buildPaymentRow(
-                                'Kode & Nama PO',
-                                '02002116 - Gabungan Perorangan Samsat Utara',
-                              ),
-                              const Divider(height: 0),
-                              _buildPaymentRow(
-                                'Masa Berlaku',
-                                '02 November 2024 - s.d. 02 November 2025',
-                              ),
-                              const SizedBox(height: 16),
-                              const Divider(height: 0),
-                              const SizedBox(height: 16),
-                              Row(
-                                children: [
-                                  _buildPaymentStat('85.000', 'Tarif'),
-                                  _buildPaymentStat('48', 'Seat'),
-                                  _buildPaymentStat('1.275.000', 'Total'),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                'No. Resi : RP.KBU.09.297147',
-                                style: AppTextStyle.regular12(
-                                  color: AppColors.netral500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  GestureDetector(
-                    onTap: () => Get.toNamed(Routes.TRANSACTION_HISTORY),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Riwayat Transaksi',
-                          style: AppTextStyle.semibold14(
-                            color: AppColors.primary,
-                          ),
-                        ),
-                        const Icon(
-                          Icons.arrow_forward_ios,
-                          size: 14,
-                          color: AppColors.primary,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+            Divider(),
+            Text(
+              'B-7205-BGA',
+              style: AppTextStyle.bold12(color: AppColors.netral200),
             ),
-            const SizedBox(height: 20),
+            Text(
+              'PT. SERLIAN JAYA UTAMA',
+              style: AppTextStyle.semibold20(color: AppColors.netral500),
+            ),
+            Wrap(
+              runSpacing: 4,
+              spacing: 4,
+              children: [
+                VehicleProfileItem(
+                  label: '2022',
+                  iconAsset: ConstantAsset.calendarIcon,
+                ),
+                VehicleProfileItem(
+                  label: '6374 CC',
+                  iconAsset: ConstantAsset.speedIcon,
+                ),
+                VehicleProfileItem(
+                  label: 'SILVER KOMBINASI',
+                  iconAsset: ConstantAsset.palletIcon,
+                ),
+              ],
+            ),
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(28),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.netral900.withOpacity(0.08),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
+                borderRadius: BorderRadius.circular(12),
+                color: Colors.grey.shade100,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    'Kecelakaan',
-                    style: AppTextStyle.semibold18(color: AppColors.netral900),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Menampilkan data kejadian terakhir',
-                    style: AppTextStyle.regular12(color: AppColors.netral500),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      gradient: const LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [AppColors.primary, AppColors.blue100],
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 16,
-                            horizontal: 16,
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Lokasi Kejadian',
-                                      style: AppTextStyle.regular12(
-                                        color: AppColors.white.withOpacity(0.8),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Pamekasan, Madura, Jawa Timur',
-                                      style: AppTextStyle.semibold14(
-                                        color: AppColors.white,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Text(
-                                '07 Februari 2024',
-                                style: AppTextStyle.semibold14(
-                                  color: AppColors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: const BoxDecoration(
-                            color: AppColors.white,
-                            borderRadius: BorderRadius.vertical(
-                              bottom: Radius.circular(20),
-                            ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              _buildPaymentRow(
-                                'Laporan Kepolisian',
-                                'LP/6/II/2024/LL',
-                              ),
-                              const Divider(height: 0),
-                              _buildPaymentRow('Pengemudi', 'M. Najib'),
-                              const Divider(height: 0),
-                              _buildPaymentRow(
-                                'Total Santunan',
-                                'Rp 145.000.000',
-                              ),
-                              const Divider(height: 0),
-                              _buildPaymentRow('Berkas Santunan', '2 Berkas'),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  GestureDetector(
-                    onTap: () {},
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Riwayat Kejadian',
-                          style: AppTextStyle.semibold14(
-                            color: AppColors.primary,
-                          ),
-                        ),
-                        const Icon(
-                          Icons.arrow_forward_ios,
-                          size: 14,
-                          color: AppColors.primary,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+              child: ListView.separated(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: profilItems.length,
+                itemBuilder: (context, index) {
+                  return profilItems[index];
+                },
+                separatorBuilder: (context, index) {
+                  return Divider();
+                },
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Card _buildTransactionSW(LastTransactionSwModel swTransaction) {
+    final item = [
+      _buildRowInfo(
+        iconAsset: ConstantAsset.calendarIcon,
+        label: 'Tgl. Penetapan',
+        value: swTransaction.tglTransaksi?.formatDate() ?? '',
+      ),
+      _buildRowInfo(
+        iconAsset: ConstantAsset.calendarIcon,
+        label: 'Masa Berlaku',
+        value:
+            '${swTransaction.masaLakuAwal!.formatDate()} s.d ${swTransaction.masaLakuAkhir!.formatDate()}',
+      ),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Column(children: [Text('${swTransaction.kd}'), Text('KD')]),
+          SizedBox(height: 25, child: VerticalDivider()),
+          Column(children: [Text('${swTransaction.sw}'), Text('SW')]),
+          SizedBox(height: 25, child: VerticalDivider()),
+          Column(children: [Text('${swTransaction.denda}'), Text('Denda')]),
+          SizedBox(height: 25, child: VerticalDivider()),
+          Column(children: [Text('${swTransaction.total}'), Text('Total')]),
+        ],
+      ),
+    ];
+
+    return Card(
+      color: AppColors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'SWDKLLJ',
+              style: AppTextStyle.semibold16(color: AppColors.netral500),
+            ),
+            Text(
+              'Menampilkan data pembayaran terakhir',
+              style: AppTextStyle.regular12(color: AppColors.netral500),
+            ),
+            Divider(),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: AppColors.red50,
+              ),
+              alignment: Alignment.center,
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(50),
+                      color: AppColors.red100,
+                    ),
+                    child: CustomImageLocal(
+                      imagePath: ConstantAsset.warningIcon,
+                      color: AppColors.red400,
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Terlambat',
+                        style: AppTextStyle.semibold12(
+                          color: AppColors.netral500,
+                        ),
+                      ),
+                      Text(
+                        'Masa Berlaku s.d ${swTransaction.masaLakuAkhir!.formatDate()}',
+                        style: AppTextStyle.regular12(
+                          color: AppColors.netral500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            _buildInfoCard(
+              item,
+              placeTitle: 'Loket Kantor',
+              placeName: swTransaction.loketKantor ?? '',
+              date: swTransaction.tglTransaksi?.formatDate() ?? '',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Card _buildTransactionIW(LastTransactionIwModel iwTransaction) {
+    final item = [
+      _buildRowInfo(
+        iconAsset: ConstantAsset.calendarIcon,
+        label: 'Status',
+        value: iwTransaction.status ?? '',
+      ),
+      _buildRowInfo(
+        iconAsset: ConstantAsset.officeIcon,
+        label: 'Kode & Nama PO',
+        value: '${iwTransaction.kodePo} - ${iwTransaction.namaPo}',
+      ),
+      _buildRowInfo(
+        iconAsset: ConstantAsset.calendarIcon,
+        label: 'Masa Berlaku',
+        value:
+            '${iwTransaction.masaLakuAwal!.formatDate()} & ${iwTransaction.masaLakuAkhir!.formatDate()}',
+      ),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Column(children: [Text('${iwTransaction.tarif}'), Text('Tarif')]),
+          SizedBox(height: 25, child: VerticalDivider()),
+          Column(children: [Text('${iwTransaction.seat}'), Text('Seat')]),
+          SizedBox(height: 25, child: VerticalDivider()),
+          Column(children: [Text('${iwTransaction.total}'), Text('Total')]),
+        ],
+      ),
+      Align(
+        alignment: AlignmentGeometry.center,
+        child: Text('No. Resi : RP.KBU09.29'),
+      ),
+    ];
+
+    return Card(
+      color: AppColors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 4,
+          children: [
+            Text(
+              'IWKBU',
+              style: AppTextStyle.semibold16(color: AppColors.netral500),
+            ),
+            Text(
+              'Menampilkan data pembayaran terakhir',
+              style: AppTextStyle.regular12(color: AppColors.netral500),
+            ),
+            Divider(),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: Colors.green.shade100,
+              ),
+              alignment: Alignment.center,
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(50),
+                      color: Colors.green.shade200,
+                    ),
+                    child: CustomImageLocal(
+                      imagePath: ConstantAsset.warningIcon,
+                      color: Colors.green.shade700,
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Aktif',
+                        style: AppTextStyle.semibold12(
+                          color: AppColors.netral500,
+                        ),
+                      ),
+                      Text(
+                        'Masa Berlaku s.d ${iwTransaction.masaLakuAkhir!.formatDate()}',
+                        style: AppTextStyle.regular12(
+                          color: AppColors.netral500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 4),
+            _buildInfoCard(
+              item,
+              placeTitle: 'Loket Kantor',
+              placeName: iwTransaction.loketKantor ?? '',
+              date: iwTransaction.tglTransaksi?.formatDate() ?? '',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  _buildCrashInfoCard(VehicleCrashHistory crashInfo) {
+    final item = [
+      _buildRowInfo(
+        iconAsset: ConstantAsset.documentIcon,
+        label: 'Laporan Kepolisian',
+        value: crashInfo.noLp ?? '',
+      ),
+      _buildRowInfo(
+        iconAsset: ConstantAsset.driverIcon,
+        label: 'Pengemudi',
+        value: crashInfo.pengemudi ?? '',
+      ),
+      _buildRowInfo(
+        iconAsset: ConstantAsset.handIcon,
+        label: 'Total Santunan',
+        value: 'Rp ${crashInfo.totalSantunan}',
+      ),
+      _buildRowInfo(
+        iconAsset: ConstantAsset.doubleFileIcon,
+        label: 'Berkas Santunan',
+        value: '${crashInfo.noBerkas}',
+      ),
+    ];
+    return Card(
+      color: AppColors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Kecelakaan',
+              style: AppTextStyle.semibold16(color: AppColors.netral500),
+            ),
+            Text(
+              'Menampilkan data kejadian terakhir',
+              style: AppTextStyle.regular12(color: AppColors.netral500),
+            ),
+            Divider(),
+
+            _buildInfoCard(
+              item,
+              placeTitle: 'Lokasi Kejadian',
+              placeName: crashInfo.lokasi ?? '',
+              date: crashInfo.tglKejadian?.formatDate() ?? '',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Row _buildRowInfo({
+    required String iconAsset,
+    required String label,
+    required String value,
+    bool? visibleValue,
+    VoidCallback? onPressed,
+  }) {
+    return Row(
+      children: [
+        CustomImageLocal(imagePath: iconAsset),
+        SizedBox(width: 4),
+        Text(label, style: AppTextStyle.regular12(color: AppColors.netral500)),
+        SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            visibleValue == null || visibleValue == true
+                ? value
+                : '****************',
+            style: AppTextStyle.semibold12(color: AppColors.primary),
+            textAlign: TextAlign.right,
+            maxLines: 2,
+          ),
+        ),
+        if (visibleValue != null)
+          IconButton(
+            onPressed: onPressed,
+            icon: Icon(
+              color: AppColors.primary,
+              visibleValue
+                  ? Icons.visibility_outlined
+                  : Icons.visibility_off_outlined,
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildInfoCard(
+    List<Widget> item, {
+    required String placeTitle,
+    required String placeName,
+    required String date,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        gradient: LinearGradient(
+          begin: AlignmentGeometry.topCenter,
+          end: AlignmentGeometry.center,
+          colors: [AppColors.primary, AppColors.white],
+        ),
+      ),
+      child: Column(
+        spacing: 4,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(placeTitle, style: AppTextStyle.regular12()),
+              Text(date, style: AppTextStyle.regular12()),
+            ],
+          ),
+          Text(placeName, style: AppTextStyle.semibold12()),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: AppColors.netral50,
+            ),
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemCount: item.length,
+              itemBuilder: (context, index) => item[index],
+              separatorBuilder: (context, index) => Divider(),
+            ),
+          ),
+        ],
       ),
     );
   }

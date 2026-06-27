@@ -15,7 +15,8 @@ abstract class RepositoryHelper {
 
       // Periksa statusCode
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = response.data['data'];
+        final data = response.data;
+        print(data);
 
         if (data != null) {
           if (jsonCallback != null) {
@@ -55,7 +56,6 @@ abstract class RepositoryHelper {
   }) async {
     try {
       Response response = await api;
-      // Periksa statusCode
       // Periksa statusCode
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = response.data['data'];

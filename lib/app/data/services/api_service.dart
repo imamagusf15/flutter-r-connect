@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_rconnect/app/common/config/api_config.dart';
 import 'package:flutter_rconnect/app/common/session/session.dart';
 import 'package:flutter_rconnect/app/common/session/session_manager.dart';
@@ -23,7 +24,19 @@ class ApiService {
               if (token != null && token.isNotEmpty) {
                 options.headers['Authorization'] = 'Bearer $token';
               }
+              debugPrint('Request URL: ${options.uri}');
               return handler.next(options);
+            },
+            onResponse: (response, handler) {
+              debugPrint('Response Status Code: ${response.statusCode}');
+
+              return handler.next(response);
+            },
+            onError: (error, handler) {
+              debugPrint('Error Type: ${error.type}');
+              debugPrint('Error Message: ${error.message}');
+              debugPrint('Response Status Code: ${error.response?.statusCode}');
+              return handler.next(error);
             },
           ),
         );

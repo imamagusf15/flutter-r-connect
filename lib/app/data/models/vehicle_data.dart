@@ -10,16 +10,22 @@ class VehicleData {
   VehicleCrashHistory? vehicleCrashHistory;
 
   VehicleData({
-    required this.vehicle,
-    required this.lastTransactionIwModel,
-    required this.lastTransactionSwModel,
-    required this.vehicleCrashHistory,
+    this.vehicle,
+    this.lastTransactionIwModel,
+    this.lastTransactionSwModel,
+    this.vehicleCrashHistory,
   });
 
   VehicleData.fromJson(Map<String, dynamic> json) {
-    vehicle = Vehicle.fromJson(json);
-    lastTransactionIwModel = LastTransactionIwModel.fromJson(json);
-    lastTransactionSwModel = LastTransactionSwModel.fromJson(json);
-    vehicleCrashHistory = VehicleCrashHistory.fromJson(json);
+    vehicle = Vehicle.fromJson(json['data_kendaraan']);
+    lastTransactionIwModel = LastTransactionIwModel.fromJson(
+      json['last_transaction_iw'],
+    );
+    lastTransactionSwModel = LastTransactionSwModel.fromJson(
+      json['last_transaction_sw'],
+    );
+    vehicleCrashHistory = VehicleCrashHistory.fromJson(
+      json['last_history_laka'],
+    );
   }
 }

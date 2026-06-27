@@ -40,7 +40,10 @@ class AuthRepositoryImpl extends RepositoryHelper implements AuthRepository {
         "version": "1.6.13",
       },
     );
-    return callApi<String>(api: dioCall, jsonCallback: (json) => json['token']);
+    return callApiWithData<String>(
+      api: dioCall,
+      jsonCallback: (json) => json['token'],
+    );
   }
 
   @override

@@ -17,6 +17,7 @@ class ConstantAsset {
   static const String bantuanImg = "assets/images/bantuan.png";
   static const String allserviceImg = "assets/images/allservice.png";
   static const String dateContainer = "assets/images/dateImage.png";
+  static const String nopolImg = "assets/images/nopol.png";
 
   // ===== Icons =====
   static const String calendarIcon = "assets/icons/calendarIcon.svg";
@@ -39,4 +40,5 @@ class ConstantAsset {
   static const String warningIcon = "assets/icons/warningIcon.svg";
   static const String wrenchIcon = "assets/icons/wrenchIcon.svg";
   static const String roleIcon = "assets/icons/roleIcon.svg";
+  static const String nopolIcon = "assets/icons/nopolIcon.svg";
 }

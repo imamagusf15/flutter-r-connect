@@ -8,7 +8,7 @@ abstract class VehicleCheckRepository {
   Future<Either<String, VehicleData>> getVehicleData({
     required String policeNumbers,
   });
-  Future<Either<String, List<LastTransactionIwModel>>> getVehicleHistoryTax({
+  Future<Either<String, List<LastTransactionSwModel>>> getVehicleHistoryTax({
     required String policeNumbers,
   });
 }
@@ -23,23 +23,23 @@ class VehicleCheckRepositoryImpl extends RepositoryHelper
       ApiConfig.getVehicle,
       queryParameters: {'no_polisi': policeNumbers},
     );
-    return callApiWithData<VehicleData>(
+    return callApi<VehicleData>(
       api: dioCall,
       jsonCallback: (json) => VehicleData.fromJson(json),
     );
   }
 
   @override
-  Future<Either<String, List<LastTransactionIwModel>>> getVehicleHistoryTax({
+  Future<Either<String, List<LastTransactionSwModel>>> getVehicleHistoryTax({
     required String policeNumbers,
   }) {
     final dioCall = api.getRequest(
       ApiConfig.getVehicle,
       queryParameters: {'no_polisi': policeNumbers},
     );
-    return callApiWithListData<LastTransactionIwModel>(
+    return callApiWithListData<LastTransactionSwModel>(
       api: dioCall,
-      jsonCallback: (json) => LastTransactionIwModel.fromJson(json),
+      jsonCallback: (json) => LastTransactionSwModel.fromJson(json),
     );
   }
 }

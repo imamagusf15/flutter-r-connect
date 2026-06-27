@@ -1,5 +1,5 @@
 class VehicleCrashHistory {
-  String? tglKejadian;
+  DateTime? tglKejadian;
   String? lokasi;
   String? noLp;
   String? pengemudi;
@@ -16,7 +16,7 @@ class VehicleCrashHistory {
   });
 
   VehicleCrashHistory.fromJson(Map<String, dynamic> json) {
-    tglKejadian = json['tgl_kejadian'];
+    tglKejadian = DateTime.parse(json['tgl_kejadian']);
     lokasi = json['lokasi'];
     noLp = json['no_lp'];
     pengemudi = json['pengemudi'];
@@ -25,13 +25,13 @@ class VehicleCrashHistory {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['tgl_kejadian'] = this.tglKejadian;
-    data['lokasi'] = this.lokasi;
-    data['no_lp'] = this.noLp;
-    data['pengemudi'] = this.pengemudi;
-    data['no_berkas'] = this.noBerkas;
-    data['total_santunan'] = this.totalSantunan;
+    final Map<String, dynamic> data = {};
+    data['tgl_kejadian'] = tglKejadian!.toIso8601String();
+    data['lokasi'] = lokasi;
+    data['no_lp'] = noLp;
+    data['pengemudi'] = pengemudi;
+    data['no_berkas'] = noBerkas;
+    data['total_santunan'] = totalSantunan;
     return data;
   }
 }

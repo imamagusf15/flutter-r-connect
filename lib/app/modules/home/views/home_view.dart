@@ -118,7 +118,7 @@ class HomeView extends GetView<HomeController> {
                             ),
                             SizedBox(width: 8),
                             Text(
-                              DateTime.now().formatDate(),
+                              DateTime.now().formatDateAndDay(),
                               style: AppTextStyle.regular14(
                                 color: AppColors.white,
                               ),
@@ -276,8 +276,9 @@ class HomeView extends GetView<HomeController> {
 
                 SizedBox(
                   width: double.infinity,
-                  height: 400,
+                  height: 250,
                   child: GridView.builder(
+                    physics: NeverScrollableScrollPhysics(),
                     itemCount: menuItems.length,
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 4,

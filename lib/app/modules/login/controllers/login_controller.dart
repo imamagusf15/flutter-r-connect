@@ -26,7 +26,7 @@ class LoginController extends GetxController {
           password: passwordController.text,
         );
 
-        await result.fold(
+        result.fold(
           (message) async {
             Get.snackbar("Failed", message);
           },
@@ -36,9 +36,9 @@ class LoginController extends GetxController {
               await _sessionManager.write(SessionKey.token, token);
               print('Token saved: $token');
             }
-            Get.toNamed(Routes.HOME);
-            // TODO: Pindahkan _fetchUserData ke HomeBinding atau HomeView
             await _fetchUserData();
+            Get.offNamed(Routes.HOME);
+            Get.delete<LoginController>();
           },
         );
       } catch (e) {
@@ -59,15 +59,16 @@ class LoginController extends GetxController {
       (data) async {
         await _sessionManager.writeMap(SessionKey.userData, data.toJson());
 
-        Get.offNamed(Routes.HOME);
         Get.snackbar('Success', 'Login Success');
       },
     );
   }
 
   @override
-  void onReady() {
-    // TODO: implement onReady
-    super.onReady();
+  void onClose() {
+    // TODO: implement onClose
+    super.onClose();
+    usernameController.dispose();
+    usernameController.dispose();
   }
 }

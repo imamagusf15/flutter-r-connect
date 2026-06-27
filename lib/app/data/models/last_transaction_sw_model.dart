@@ -1,17 +1,17 @@
-class LastTransactionSwModel {
+class LastTransactionIwModel {
   String? loketKantor;
   String? kodePo;
   String? namaPo;
   String? status;
   String? noResi;
-  String? tglTransaksi;
-  String? masaLakuAwal;
-  String? masaLakuAkhir;
+  DateTime? tglTransaksi;
+  DateTime? masaLakuAwal;
+  DateTime? masaLakuAkhir;
   int? tarif;
   int? seat;
   int? total;
 
-  LastTransactionSwModel({
+  LastTransactionIwModel({
     this.loketKantor,
     this.kodePo,
     this.namaPo,
@@ -25,33 +25,33 @@ class LastTransactionSwModel {
     this.total,
   });
 
-  LastTransactionSwModel.fromJson(Map<String, dynamic> json) {
+  LastTransactionIwModel.fromJson(Map<String, dynamic> json) {
     loketKantor = json['loket_kantor'];
     kodePo = json['kode_po'];
     namaPo = json['nama_po'];
     status = json['status'];
     noResi = json['no_resi'];
-    tglTransaksi = json['tgl_transaksi'];
-    masaLakuAwal = json['masa_laku_awal'];
-    masaLakuAkhir = json['masa_laku_akhir'];
+    tglTransaksi = DateTime.parse(json['tgl_transaksi']);
+    masaLakuAwal = DateTime.parse(json['masa_laku_awal']);
+    masaLakuAkhir = DateTime.parse(json['masa_laku_akhir']);
     tarif = json['tarif'];
     seat = json['seat'];
     total = json['total'];
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['loket_kantor'] = this.loketKantor;
-    data['kode_po'] = this.kodePo;
-    data['nama_po'] = this.namaPo;
-    data['status'] = this.status;
-    data['no_resi'] = this.noResi;
-    data['tgl_transaksi'] = this.tglTransaksi;
-    data['masa_laku_awal'] = this.masaLakuAwal;
-    data['masa_laku_akhir'] = this.masaLakuAkhir;
-    data['tarif'] = this.tarif;
-    data['seat'] = this.seat;
-    data['total'] = this.total;
+    final Map<String, dynamic> data = {};
+    data['loket_kantor'] = loketKantor;
+    data['kode_po'] = kodePo;
+    data['nama_po'] = namaPo;
+    data['status'] = status;
+    data['no_resi'] = noResi;
+    data['tgl_transaksi'] = tglTransaksi!.toIso8601String();
+    data['masa_laku_awal'] = masaLakuAwal!.toIso8601String();
+    data['masa_laku_akhir'] = masaLakuAkhir!.toIso8601String();
+    data['tarif'] = tarif;
+    data['seat'] = seat;
+    data['total'] = total;
     return data;
   }
 }
