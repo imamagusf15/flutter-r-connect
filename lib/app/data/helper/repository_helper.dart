@@ -16,7 +16,6 @@ abstract class RepositoryHelper {
       // Periksa statusCode
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = response.data;
-        print(data);
 
         if (data != null) {
           if (jsonCallback != null) {
@@ -45,6 +44,9 @@ abstract class RepositoryHelper {
         return left(message);
       }
     } on DioException catch (e) {
+      if (e.type == DioExceptionType.badResponse) {
+        return left(e.response?.data['message'] ?? 'Terjadi kesalahan');
+      }
       final errorMessage = DioExceptions.fromDioError(e).toString();
       return left(errorMessage);
     }
@@ -87,6 +89,9 @@ abstract class RepositoryHelper {
         return left(message);
       }
     } on DioException catch (e) {
+      if (e.type == DioExceptionType.badResponse) {
+        return left(e.response?.data['message'] ?? 'Terjadi kesalahan');
+      }
       final errorMessage = DioExceptions.fromDioError(e).toString();
       return left(errorMessage);
     }
@@ -121,6 +126,9 @@ abstract class RepositoryHelper {
         return left(message);
       }
     } on DioException catch (e) {
+      if (e.type == DioExceptionType.badResponse) {
+        return left(e.response?.data['message'] ?? 'Terjadi kesalahan');
+      }
       final errorMessage = DioExceptions.fromDioError(e).toString();
       return left(errorMessage);
     }

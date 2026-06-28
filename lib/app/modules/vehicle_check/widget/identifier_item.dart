@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_rconnect/app/common/constant/constant_asset.dart';
 import 'package:flutter_rconnect/app/common/widgets/custom_image_local.dart';
 import 'package:flutter_rconnect/app/core/app_color.dart';
 import 'package:flutter_rconnect/app/core/app_text_style.dart';

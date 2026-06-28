@@ -1,8 +1,5 @@
-import 'package:flutter_rconnect/app/data/models/last_transaction_iw_model.dart';
-import 'package:flutter_rconnect/app/data/models/last_transaction_sw_model.dart';
-import 'package:flutter_rconnect/app/data/models/vehicle_crash_history.dart';
+import 'package:flutter_rconnect/app/core/app_color.dart';
 import 'package:flutter_rconnect/app/data/models/vehicle_data.dart';
-import 'package:flutter_rconnect/app/data/models/vehicle_model.dart';
 import 'package:flutter_rconnect/app/data/repositories/vehicle_check_repository.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
@@ -28,8 +25,8 @@ class VehicleCheckController extends GetxController {
   ];
 
   Future<void> fetchVehicleData() async {
-    vehicleData.value = null;
     if (formKey.currentState!.validate()) {
+      String? errorMessage;
       try {
         isLoading.value = true;
 
@@ -39,15 +36,46 @@ class VehicleCheckController extends GetxController {
           policeNumbers: formattedText,
         );
 
-        result.fold((l) => Get.snackbar('Failed!', l), (data) {
-          vehicleData.value = data;
-        });
+        result.fold(
+          (l) {
+            isLoading.value = false;
+            errorMessage = l.toString();
+          },
+          (data) {
+            vehicleData.value = data;
+          },
+        );
       } catch (e) {
-        Get.snackbar('Failed!', e.toString());
+        errorMessage = e.toString();
       } finally {
         isLoading.value = false;
       }
+
+      if (errorMessage != null) {
+        Get.snackbar('Failed!', errorMessage ?? '');
+      }
     }
+  }
+
+  void showDialogInfo() {}
+
+  @override
+  void onReady() {
+    super.onReady();
+    ever(isLoading, (callback) {
+      if (callback) {
+        Get.dialog(
+          Dialog(
+            backgroundColor: Colors.transparent,
+            child: Center(
+              child: CircularProgressIndicator(color: AppColors.white),
+            ),
+          ),
+        );
+      } else {
+        Get.back();
+      }
+    });
   }
 
   @override

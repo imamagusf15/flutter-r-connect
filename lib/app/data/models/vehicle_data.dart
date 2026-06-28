@@ -18,14 +18,14 @@ class VehicleData {
 
   VehicleData.fromJson(Map<String, dynamic> json) {
     vehicle = Vehicle.fromJson(json['data_kendaraan']);
-    lastTransactionIwModel = LastTransactionIwModel.fromJson(
-      json['last_transaction_iw'],
-    );
-    lastTransactionSwModel = LastTransactionSwModel.fromJson(
-      json['last_transaction_sw'],
-    );
-    vehicleCrashHistory = VehicleCrashHistory.fromJson(
-      json['last_history_laka'],
-    );
+    lastTransactionIwModel = json['last_transaction_iw'] != null
+        ? LastTransactionIwModel.fromJson(json['last_transaction_iw'])
+        : null;
+    lastTransactionSwModel = json['last_transaction_sw'] != null
+        ? LastTransactionSwModel.fromJson(json['last_transaction_sw'])
+        : null;
+    vehicleCrashHistory = json['last_history_laka'] != null
+        ? VehicleCrashHistory.fromJson(json['last_history_laka'])
+        : null;
   }
 }

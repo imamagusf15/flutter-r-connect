@@ -59,29 +59,24 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
                     children: [
                       _buildCheckVehicleCard(),
                       Obx(() {
-                        return controller.vehicleData.value != null
+                        final vehicleData = controller.vehicleData.value;
+                        return vehicleData != null
                             ? Column(
                                 children: [
                                   _buildVehicleProfileCard(
-                                    controller.vehicleData.value!.vehicle!,
+                                    vehicleData.vehicle!,
                                   ),
                                   _buildTransactionSW(
-                                    controller
-                                        .vehicleData
-                                        .value!
-                                        .lastTransactionSwModel!,
+                                    vehicleData.lastTransactionSwModel ??
+                                        LastTransactionSwModel(),
                                   ),
                                   _buildTransactionIW(
-                                    controller
-                                        .vehicleData
-                                        .value!
-                                        .lastTransactionIwModel!,
+                                    vehicleData.lastTransactionIwModel ??
+                                        LastTransactionIwModel(),
                                   ),
                                   _buildCrashInfoCard(
-                                    controller
-                                        .vehicleData
-                                        .value!
-                                        .vehicleCrashHistory!,
+                                    vehicleData.vehicleCrashHistory ??
+                                        VehicleCrashHistory(),
                                   ),
                                 ],
                               )
@@ -272,7 +267,7 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
         () => _buildRowInfo(
           iconAsset: ConstantAsset.phoneIcon,
           label: 'No. HP',
-          value: 'test',
+          value: vehicle.noHp ?? '',
           visibleValue: controller.visibleHP.value,
           onPressed: () => controller.visibleHP.toggle(),
         ),
@@ -281,7 +276,7 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
       _buildRowInfo(
         iconAsset: ConstantAsset.locationIcon,
         label: 'Alamat',
-        value: '',
+        value: vehicle.alamat ?? '',
       ),
     ];
     return Card(
@@ -298,11 +293,11 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
             ),
             Divider(),
             Text(
-              'B-7205-BGA',
+              vehicle.noPolisi ?? '',
               style: AppTextStyle.bold12(color: AppColors.netral200),
             ),
             Text(
-              'PT. SERLIAN JAYA UTAMA',
+              vehicle.namaPemilik ?? '',
               style: AppTextStyle.semibold20(color: AppColors.netral500),
             ),
             Wrap(
@@ -310,15 +305,15 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
               spacing: 4,
               children: [
                 VehicleProfileItem(
-                  label: '2022',
+                  label: vehicle.tahun ?? '',
                   iconAsset: ConstantAsset.calendarIcon,
                 ),
                 VehicleProfileItem(
-                  label: '6374 CC',
+                  label: '${vehicle.cc} CC',
                   iconAsset: ConstantAsset.speedIcon,
                 ),
                 VehicleProfileItem(
-                  label: 'SILVER KOMBINASI',
+                  label: vehicle.warna ?? '',
                   iconAsset: ConstantAsset.palletIcon,
                 ),
               ],
@@ -360,18 +355,28 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
         value:
             '${swTransaction.masaLakuAwal!.formatDate()} s.d ${swTransaction.masaLakuAkhir!.formatDate()}',
       ),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Column(children: [Text('${swTransaction.kd}'), Text('KD')]),
-          SizedBox(height: 25, child: VerticalDivider()),
-          Column(children: [Text('${swTransaction.sw}'), Text('SW')]),
-          SizedBox(height: 25, child: VerticalDivider()),
-          Column(children: [Text('${swTransaction.denda}'), Text('Denda')]),
-          SizedBox(height: 25, child: VerticalDivider()),
-          Column(children: [Text('${swTransaction.total}'), Text('Total')]),
-        ],
-      ),
+      _buildRowPriceTotal([
+        {
+          'label': 'KD',
+          'value': swTransaction.kd,
+          'textColor': AppColors.netral500,
+        },
+        {
+          'label': 'SW',
+          'value': swTransaction.sw,
+          'textColor': AppColors.netral500,
+        },
+        {
+          'label': 'Denda',
+          'value': swTransaction.denda,
+          'textColor': AppColors.netral500,
+        },
+        {
+          'label': 'Total',
+          'value': swTransaction.total,
+          'textColor': AppColors.primary,
+        },
+      ]),
     ];
 
     return Card(
@@ -410,6 +415,7 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
                       color: AppColors.red400,
                     ),
                   ),
+                  SizedBox(width: 8),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -436,6 +442,19 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
               placeName: swTransaction.loketKantor ?? '',
               date: swTransaction.tglTransaksi?.formatDate() ?? '',
             ),
+            Divider(),
+            Align(
+              alignment: AlignmentGeometry.centerRight,
+              child: TextButton.icon(
+                onPressed: () {},
+                icon: Icon(Icons.arrow_forward_ios, color: AppColors.primary),
+                iconAlignment: IconAlignment.end,
+                label: Text(
+                  'Riwayat Transaksi',
+                  style: AppTextStyle.semibold12(color: AppColors.primary),
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -447,32 +466,43 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
       _buildRowInfo(
         iconAsset: ConstantAsset.calendarIcon,
         label: 'Status',
-        value: iwTransaction.status ?? '',
+        value: iwTransaction.status ?? '-',
       ),
       _buildRowInfo(
         iconAsset: ConstantAsset.officeIcon,
         label: 'Kode & Nama PO',
-        value: '${iwTransaction.kodePo} - ${iwTransaction.namaPo}',
+        value: '${iwTransaction.kodePo ?? ''} - ${iwTransaction.namaPo ?? '-'}',
       ),
       _buildRowInfo(
         iconAsset: ConstantAsset.calendarIcon,
         label: 'Masa Berlaku',
-        value:
-            '${iwTransaction.masaLakuAwal!.formatDate()} & ${iwTransaction.masaLakuAkhir!.formatDate()}',
+        value: iwTransaction.masaLakuAwal != null
+            ? '${iwTransaction.masaLakuAwal!.formatDate()} & ${iwTransaction.masaLakuAkhir!.formatDate()}'
+            : '-',
       ),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Column(children: [Text('${iwTransaction.tarif}'), Text('Tarif')]),
-          SizedBox(height: 25, child: VerticalDivider()),
-          Column(children: [Text('${iwTransaction.seat}'), Text('Seat')]),
-          SizedBox(height: 25, child: VerticalDivider()),
-          Column(children: [Text('${iwTransaction.total}'), Text('Total')]),
-        ],
-      ),
+      _buildRowPriceTotal([
+        {
+          'label': 'Tarif',
+          'value': iwTransaction.tarif ?? '-',
+          'textColor': AppColors.netral500,
+        },
+        {
+          'label': 'Seat',
+          'value': iwTransaction.seat ?? '-',
+          'textColor': AppColors.netral500,
+        },
+        {
+          'label': 'Total',
+          'value': iwTransaction.total ?? '-',
+          'textColor': AppColors.primary,
+        },
+      ]),
       Align(
         alignment: AlignmentGeometry.center,
-        child: Text('No. Resi : RP.KBU09.29'),
+        child: Text(
+          'No. Resi : ${iwTransaction.noResi ?? '-'}',
+          style: AppTextStyle.regular12(color: AppColors.netral300),
+        ),
       ),
     ];
 
@@ -513,6 +543,7 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
                       color: Colors.green.shade700,
                     ),
                   ),
+                  SizedBox(width: 8),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -523,7 +554,7 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
                         ),
                       ),
                       Text(
-                        'Masa Berlaku s.d ${iwTransaction.masaLakuAkhir!.formatDate()}',
+                        'Masa Berlaku s.d ${iwTransaction.masaLakuAkhir?.formatDate() ?? '-'}',
                         style: AppTextStyle.regular12(
                           color: AppColors.netral500,
                         ),
@@ -537,8 +568,21 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
             _buildInfoCard(
               item,
               placeTitle: 'Loket Kantor',
-              placeName: iwTransaction.loketKantor ?? '',
-              date: iwTransaction.tglTransaksi?.formatDate() ?? '',
+              placeName: iwTransaction.loketKantor ?? '-',
+              date: iwTransaction.tglTransaksi?.formatDate() ?? '-',
+            ),
+            Divider(),
+            Align(
+              alignment: AlignmentGeometry.centerRight,
+              child: TextButton.icon(
+                onPressed: () => Get.toNamed(Routes.TRANSACTION_HISTORY),
+                icon: Icon(Icons.arrow_forward_ios, color: AppColors.primary),
+                iconAlignment: IconAlignment.end,
+                label: Text(
+                  'Riwayat Transaksi',
+                  style: AppTextStyle.semibold12(color: AppColors.primary),
+                ),
+              ),
             ),
           ],
         ),
@@ -546,27 +590,27 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
     );
   }
 
-  _buildCrashInfoCard(VehicleCrashHistory crashInfo) {
+  Widget _buildCrashInfoCard(VehicleCrashHistory crashInfo) {
     final item = [
       _buildRowInfo(
         iconAsset: ConstantAsset.documentIcon,
         label: 'Laporan Kepolisian',
-        value: crashInfo.noLp ?? '',
+        value: crashInfo.noLp ?? '-',
       ),
       _buildRowInfo(
         iconAsset: ConstantAsset.driverIcon,
         label: 'Pengemudi',
-        value: crashInfo.pengemudi ?? '',
+        value: crashInfo.pengemudi ?? '-',
       ),
       _buildRowInfo(
         iconAsset: ConstantAsset.handIcon,
         label: 'Total Santunan',
-        value: 'Rp ${crashInfo.totalSantunan}',
+        value: 'Rp ${crashInfo.totalSantunan ?? '0'}',
       ),
       _buildRowInfo(
         iconAsset: ConstantAsset.doubleFileIcon,
         label: 'Berkas Santunan',
-        value: '${crashInfo.noBerkas}',
+        value: crashInfo.noBerkas ?? '-',
       ),
     ];
     return Card(
@@ -589,8 +633,21 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
             _buildInfoCard(
               item,
               placeTitle: 'Lokasi Kejadian',
-              placeName: crashInfo.lokasi ?? '',
-              date: crashInfo.tglKejadian?.formatDate() ?? '',
+              placeName: crashInfo.lokasi ?? '-',
+              date: crashInfo.tglKejadian?.formatDate() ?? '-',
+            ),
+            Divider(),
+            Align(
+              alignment: AlignmentGeometry.centerRight,
+              child: TextButton.icon(
+                onPressed: () {},
+                icon: Icon(Icons.arrow_forward_ios, color: AppColors.primary),
+                iconAlignment: IconAlignment.end,
+                label: Text(
+                  'Riwayat Kejadian',
+                  style: AppTextStyle.semibold12(color: AppColors.primary),
+                ),
+              ),
             ),
           ],
         ),
@@ -613,9 +670,11 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
         SizedBox(width: 8),
         Expanded(
           child: Text(
-            visibleValue == null || visibleValue == true
-                ? value
-                : '****************',
+            visibleValue != null
+                ? visibleValue == true
+                      ? value
+                      : '****************'
+                : value,
             style: AppTextStyle.semibold12(color: AppColors.primary),
             textAlign: TextAlign.right,
             maxLines: 2,
@@ -677,6 +736,39 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildRowPriceTotal(List<Map<String, dynamic>> items) {
+    return Container(
+      width: Get.width,
+      height: 50,
+      alignment: Alignment.center,
+      child: ListView.separated(
+        shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
+
+        scrollDirection: Axis.horizontal,
+        separatorBuilder: (context, index) =>
+            VerticalDivider(indent: 10, endIndent: 10, width: 20),
+        itemCount: items.length,
+        itemBuilder: (context, index) {
+          final item = items[index];
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                '${item['value']}',
+                style: AppTextStyle.bold12(color: item['textColor']),
+              ),
+              Text(
+                item['label'],
+                style: AppTextStyle.regular12(color: item['textColor']),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
