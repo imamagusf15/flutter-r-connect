@@ -3,7 +3,11 @@ import 'package:flutter_rconnect/app/common/constant/constant_asset.dart';
 import 'package:flutter_rconnect/app/common/extension/datetime_extension.dart';
 import 'package:flutter_rconnect/app/common/widgets/custom_image_local.dart';
 import 'package:flutter_rconnect/app/common/widgets/custom_textfield.dart';
+import 'package:flutter_rconnect/app/common/widgets/history_crash_card.dart';
+import 'package:flutter_rconnect/app/common/widgets/history_iw_card.dart';
+import 'package:flutter_rconnect/app/common/widgets/history_sw_card.dart';
 import 'package:flutter_rconnect/app/core/app_string.dart';
+import 'package:flutter_rconnect/app/core/enum.dart';
 import 'package:flutter_rconnect/app/data/models/last_transaction_iw_model.dart';
 import 'package:flutter_rconnect/app/data/models/last_transaction_sw_model.dart';
 import 'package:flutter_rconnect/app/data/models/vehicle_crash_history.dart';
@@ -342,43 +346,7 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
     );
   }
 
-  Card _buildTransactionSW(LastTransactionSwModel swTransaction) {
-    final item = [
-      _buildRowInfo(
-        iconAsset: ConstantAsset.calendarIcon,
-        label: 'Tgl. Penetapan',
-        value: swTransaction.tglTransaksi?.formatDate() ?? '',
-      ),
-      _buildRowInfo(
-        iconAsset: ConstantAsset.calendarIcon,
-        label: 'Masa Berlaku',
-        value:
-            '${swTransaction.masaLakuAwal!.formatDate()} s.d ${swTransaction.masaLakuAkhir!.formatDate()}',
-      ),
-      _buildRowPriceTotal([
-        {
-          'label': 'KD',
-          'value': swTransaction.kd,
-          'textColor': AppColors.netral500,
-        },
-        {
-          'label': 'SW',
-          'value': swTransaction.sw,
-          'textColor': AppColors.netral500,
-        },
-        {
-          'label': 'Denda',
-          'value': swTransaction.denda,
-          'textColor': AppColors.netral500,
-        },
-        {
-          'label': 'Total',
-          'value': swTransaction.total,
-          'textColor': AppColors.primary,
-        },
-      ]),
-    ];
-
+  Widget _buildTransactionSW(LastTransactionSwModel swTransaction) {
     return Card(
       color: AppColors.white,
       child: Padding(
@@ -436,17 +404,17 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
                 ],
               ),
             ),
-            _buildInfoCard(
-              item,
-              placeTitle: 'Loket Kantor',
-              placeName: swTransaction.loketKantor ?? '',
-              date: swTransaction.tglTransaksi?.formatDate() ?? '',
-            ),
+            HistorySwCard(transaction: swTransaction),
             Divider(),
             Align(
               alignment: AlignmentGeometry.centerRight,
               child: TextButton.icon(
-                onPressed: () {},
+                onPressed: () {
+                  Get.toNamed(
+                    Routes.TRANSACTION_HISTORY,
+                    arguments: HistoryType.sw,
+                  );
+                },
                 icon: Icon(Icons.arrow_forward_ios, color: AppColors.primary),
                 iconAlignment: IconAlignment.end,
                 label: Text(
@@ -462,50 +430,6 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
   }
 
   Card _buildTransactionIW(LastTransactionIwModel iwTransaction) {
-    final item = [
-      _buildRowInfo(
-        iconAsset: ConstantAsset.calendarIcon,
-        label: 'Status',
-        value: iwTransaction.status ?? '-',
-      ),
-      _buildRowInfo(
-        iconAsset: ConstantAsset.officeIcon,
-        label: 'Kode & Nama PO',
-        value: '${iwTransaction.kodePo ?? ''} - ${iwTransaction.namaPo ?? '-'}',
-      ),
-      _buildRowInfo(
-        iconAsset: ConstantAsset.calendarIcon,
-        label: 'Masa Berlaku',
-        value: iwTransaction.masaLakuAwal != null
-            ? '${iwTransaction.masaLakuAwal!.formatDate()} & ${iwTransaction.masaLakuAkhir!.formatDate()}'
-            : '-',
-      ),
-      _buildRowPriceTotal([
-        {
-          'label': 'Tarif',
-          'value': iwTransaction.tarif ?? '-',
-          'textColor': AppColors.netral500,
-        },
-        {
-          'label': 'Seat',
-          'value': iwTransaction.seat ?? '-',
-          'textColor': AppColors.netral500,
-        },
-        {
-          'label': 'Total',
-          'value': iwTransaction.total ?? '-',
-          'textColor': AppColors.primary,
-        },
-      ]),
-      Align(
-        alignment: AlignmentGeometry.center,
-        child: Text(
-          'No. Resi : ${iwTransaction.noResi ?? '-'}',
-          style: AppTextStyle.regular12(color: AppColors.netral300),
-        ),
-      ),
-    ];
-
     return Card(
       color: AppColors.white,
       child: Padding(
@@ -565,12 +489,7 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
               ),
             ),
             SizedBox(height: 4),
-            _buildInfoCard(
-              item,
-              placeTitle: 'Loket Kantor',
-              placeName: iwTransaction.loketKantor ?? '-',
-              date: iwTransaction.tglTransaksi?.formatDate() ?? '-',
-            ),
+            HistoryIwCard(transaction: iwTransaction),
             Divider(),
             Align(
               alignment: AlignmentGeometry.centerRight,
@@ -591,28 +510,6 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
   }
 
   Widget _buildCrashInfoCard(VehicleCrashHistory crashInfo) {
-    final item = [
-      _buildRowInfo(
-        iconAsset: ConstantAsset.documentIcon,
-        label: 'Laporan Kepolisian',
-        value: crashInfo.noLp ?? '-',
-      ),
-      _buildRowInfo(
-        iconAsset: ConstantAsset.driverIcon,
-        label: 'Pengemudi',
-        value: crashInfo.pengemudi ?? '-',
-      ),
-      _buildRowInfo(
-        iconAsset: ConstantAsset.handIcon,
-        label: 'Total Santunan',
-        value: 'Rp ${crashInfo.totalSantunan ?? '0'}',
-      ),
-      _buildRowInfo(
-        iconAsset: ConstantAsset.doubleFileIcon,
-        label: 'Berkas Santunan',
-        value: crashInfo.noBerkas ?? '-',
-      ),
-    ];
     return Card(
       color: AppColors.white,
       child: Padding(
@@ -629,13 +526,7 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
               style: AppTextStyle.regular12(color: AppColors.netral500),
             ),
             Divider(),
-
-            _buildInfoCard(
-              item,
-              placeTitle: 'Lokasi Kejadian',
-              placeName: crashInfo.lokasi ?? '-',
-              date: crashInfo.tglKejadian?.formatDate() ?? '-',
-            ),
+            HistoryCrashCard(crashInfo: crashInfo),
             Divider(),
             Align(
               alignment: AlignmentGeometry.centerRight,
@@ -691,85 +582,6 @@ class VehicleCheckView extends GetView<VehicleCheckController> {
             ),
           ),
       ],
-    );
-  }
-
-  Widget _buildInfoCard(
-    List<Widget> item, {
-    required String placeTitle,
-    required String placeName,
-    required String date,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        gradient: LinearGradient(
-          begin: AlignmentGeometry.topCenter,
-          end: AlignmentGeometry.center,
-          colors: [AppColors.primary, AppColors.white],
-        ),
-      ),
-      child: Column(
-        spacing: 4,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(placeTitle, style: AppTextStyle.regular12()),
-              Text(date, style: AppTextStyle.regular12()),
-            ],
-          ),
-          Text(placeName, style: AppTextStyle.semibold12()),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: AppColors.netral50,
-            ),
-            child: ListView.separated(
-              shrinkWrap: true,
-              itemCount: item.length,
-              itemBuilder: (context, index) => item[index],
-              separatorBuilder: (context, index) => Divider(),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRowPriceTotal(List<Map<String, dynamic>> items) {
-    return Container(
-      width: Get.width,
-      height: 50,
-      alignment: Alignment.center,
-      child: ListView.separated(
-        shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
-
-        scrollDirection: Axis.horizontal,
-        separatorBuilder: (context, index) =>
-            VerticalDivider(indent: 10, endIndent: 10, width: 20),
-        itemCount: items.length,
-        itemBuilder: (context, index) {
-          final item = items[index];
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                '${item['value']}',
-                style: AppTextStyle.bold12(color: item['textColor']),
-              ),
-              Text(
-                item['label'],
-                style: AppTextStyle.regular12(color: item['textColor']),
-              ),
-            ],
-          );
-        },
-      ),
     );
   }
 }
